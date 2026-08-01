@@ -22,6 +22,7 @@ export interface CatalogRagResponse {
   model_name: string;
   answer_mode: 'structured' | 'llm' | 'fallback' | 'clarification';
   intent?: string;
+  filters?: Record<string, any>;
   catalog_id: number;
   catalog_name: string;
   source_count: number;
@@ -35,6 +36,7 @@ export interface ChatMessage {
   sources?: CatalogRagSource[];
   answerMode?: 'structured' | 'llm' | 'fallback' | 'clarification';
   intent?: string;
+  filters?: Record<string, any>;
   createdAt: string;
   status?: 'sending' | 'sent' | 'error';
 }
