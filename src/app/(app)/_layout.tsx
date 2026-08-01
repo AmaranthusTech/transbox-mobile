@@ -1,8 +1,21 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { View } from 'react-native';
 import { Stack, Link } from 'expo-router';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { CartBadgeButton } from '@/components/cart/CartBadgeButton';
+import { useCartStore } from '@/stores/cart';
+import { useAuthStore } from '@/stores/auth';
 
 export default function AppLayout() {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const fetchCart = useCartStore((state) => state.fetchCart);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchCart();
+    }
+  }, [isAuthenticated]);
+
   return (
     <Stack
       screenOptions={{
@@ -23,11 +36,14 @@ export default function AppLayout() {
         options={{
           title: 'TRANSBOX Mobile',
           headerRight: () => (
-            <Link href="/(app)/profile" asChild>
-              <TouchableOpacity style={styles.headerButton}>
-                <Text style={styles.headerButtonText}>プロフィール</Text>
-              </TouchableOpacity>
-            </Link>
+            <View style={styles.headerRightContainer}>
+              <CartBadgeButton />
+              <Link href="/(app)/profile" asChild>
+                <TouchableOpacity style={styles.headerButton}>
+                  <Text style={styles.headerButtonText}>マイページ</Text>
+                </TouchableOpacity>
+              </Link>
+            </View>
           ),
         }}
       />
@@ -38,11 +54,29 @@ export default function AppLayout() {
           headerBackTitle: '戻る',
         }}
       />
+      <Stack.Screen
+        name="cart"
+        options={{
+          title: 'ショッピングカート',
+          headerBackTitle: '戻る',
+        }}
+      />
+      <Stack.Screen
+        name="order-confirm"
+        options={{
+          title: '注文内容の確認',
+          headerBackTitle: 'カート',
+        }}
+      />
     </Stack>
   );
 }
 
 const styles = StyleSheet.create({
+  headerRightContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   headerButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,

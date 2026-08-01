@@ -13,6 +13,7 @@ import { useCatalogItems } from '@/hooks/useCatalogItems';
 import { ItemCard } from '@/components/catalog';
 import { Input, LoadingOverlay, ErrorMessage, Button } from '@/components/ui';
 import { CatalogProductItem } from '@/types';
+import { CartBadgeButton } from '@/components/cart/CartBadgeButton';
 
 export default function CatalogItemsScreen() {
   const params = useLocalSearchParams<{ catalogId: string }>();
@@ -60,6 +61,7 @@ export default function CatalogItemsScreen() {
         options={{
           title: catalog ? catalog.name : 'カタログ商品',
           headerBackTitle: '一覧',
+          headerRight: () => <CartBadgeButton />,
         }}
       />
 

@@ -80,7 +80,7 @@ export default function ItemDetailScreen() {
           <Text style={styles.emptySkuText}>掲載可能なバリエーションがありません。</Text>
         ) : (
           product.skus.map((sku) => (
-            <SkuCard key={sku.sku_id} sku={sku} />
+            <SkuCard key={sku.sku_id} catalogId={catalogId} sku={sku} />
           ))
         )}
       </View>

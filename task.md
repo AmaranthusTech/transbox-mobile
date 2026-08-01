@@ -1,4 +1,4 @@
-# TRANSBOX Mobile Phase 1-A / 1-B / 1-C タスクリスト
+# TRANSBOX Mobile Phase 1-A / 1-B / 1-C / 1-D-1 タスクリスト
 
 ## Phase 1-A (認証 & 共通基盤)
 - [x] 現状構成確認
@@ -38,3 +38,25 @@
 - [x] カタログ詳細「AIアシスタントに質問する」導線追加
 - [x] ドキュメント更新 (README.md, 仕様書)
 - [x] 差分確認 (git status, diff)
+
+## Phase 1-D-1 (カート基盤 - 実装完了)
+- [x] バックエンド既存モデル・サービス調査 (`OrderDraft`, `EndUserOrderRequest`, `pricing_services`)
+- [x] モバイルアプリ既存構造調査 (`itemId.tsx`, `SkuCard.tsx`, Zustand `authStore`)
+- [x] カート保存方式比較・決定 (サーバー永続型 `EndUserOrderRequest` (status="draft") の採用)
+- [x] API仕様案およびエラーハンドリング設計
+- [x] 実装計画書作成 (`implementation_plan.md`)
+- [x] バックエンド カート API 追加 (`GET /api/end-user/cart/`, `POST /items/`, `POST /replace/`, `PATCH`, `DELETE`)
+- [x] 1 カート 1 カタログ制約 & 409 Conflict 処理
+- [x] カート取得・操作ごとのリアルタイム動的適用価格計算
+- [x] モバイル 型定義・API クライアント・Zustand カートストア (`src/stores/cart.ts`) 実装
+- [x] 商品詳細 SKU カード (`SkuCard`) への数量セレクター・カート追加・別カタログ置き換えダイアログ連動
+- [x] カート画面 (`src/app/(app)/cart.tsx`) & 明細カード (`CartLineCard`) 実装
+## Phase 1-D-2A (注文確認画面 - 実装完了)
+- [x] バックエンド カート API レスポンス最小拡張 (`customer_name`, `requester_name`, `requester_email`)
+- [x] カート画面 (`cart.tsx`) の「注文内容を確認する」ボタン有効化 & ルーティング設定
+- [x] 注文確認画面 (`src/app/(app)/order-confirm.tsx`) の新設
+- [x] 画面表示時の最新カート API (`GET /api/end-user/cart/`) 自動再取得
+- [x] 申請者情報・所属カスタマー名・対象カタログ名・明細プレビュー・単価・数量・小計・税込金額の表示
+- [x] 空カート保護表示 & 注文受付不可エラーボックス表示
+- [x] 固定フッター「注文を申請する (Phase 1-D-2B)」ボタン (disabled) 配置
+- [x] ドキュメント更新 (仕様書, README.md, task.md)

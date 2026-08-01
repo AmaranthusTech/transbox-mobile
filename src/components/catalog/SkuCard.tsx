@@ -1,16 +1,58 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import { SkuItem } from '@/types';
 import { ItemImage } from './ItemImage';
 import { PriceDisplay } from './PriceDisplay';
-import { Button } from '@/components/ui';
+import { Button, QuantitySelector } from '@/components/ui';
+import { useCartStore } from '@/stores/cart';
 
 interface SkuCardProps {
+  catalogId: number;
   sku: SkuItem;
 }
 
-export const SkuCard: React.FC<SkuCardProps> = ({ sku }) => {
+export const SkuCard: React.FC<SkuCardProps> = ({ catalogId, sku }) => {
   const isAvailable = sku.is_orderable;
+  const [quantity, setQuantity] = useState<number>(1);
+
+  const { addItem, replaceItem, isMutating } = useCartStore();
+
+  const handleAddToCart = async () => {
+    if (!isAvailable) return;
+
+    const payload = {
+      catalog_id: catalogId,
+      item_sku_id: sku.sku_id,
+      quantity,
+    };
+
+    const result = await addItem(payload);
+
+    if (result.success) {
+      Alert.alert('カート追加', `${sku.display_name} (${quantity}個) をカートに追加しました。`);
+      setQuantity(1);
+    } else if (result.conflict) {
+      const conflict = result.conflict;
+      Alert.alert(
+        '別カタログの商品の存在',
+        `別のカタログ（${conflict.current_catalog.name}）の商品がカートに入っています。現在のカートをクリアして、この商品を追加しますか？`,
+        [
+          { text: 'キャンセル', style: 'cancel' },
+          {
+            text: 'カートを置き換える',
+            style: 'destructive',
+            onPress: async () => {
+              const replaced = await replaceItem(payload);
+              if (replaced) {
+                Alert.alert('カート更新', `${sku.display_name} を追加し、カートを更新しました。`);
+                setQuantity(1);
+              }
+            },
+          },
+        ]
+      );
+    }
+  };
 
   return (
     <View style={styles.card}>
@@ -42,24 +84,40 @@ export const SkuCard: React.FC<SkuCardProps> = ({ sku }) => {
           ) : null}
         </View>
 
-        <View style={styles.footerRow}>
-          <View>
-            <PriceDisplay
-              price={sku.effective_price}
-              hasPriceMissing={sku.has_price_missing}
-              size="medium"
-            />
-            {sku.catalog_price && sku.catalog_price !== sku.master_price ? (
-              <Text style={styles.overrideBadge}>カタログ価格適用</Text>
-            ) : null}
-          </View>
-
-          <Button
-            title={isAvailable ? 'カート追加 (Phase 1-D)' : '注文不可'}
-            variant="outline"
-            disabled={true}
-            style={styles.cartButton}
+        <View style={styles.priceRow}>
+          <PriceDisplay
+            price={sku.effective_price}
+            hasPriceMissing={sku.has_price_missing}
+            size="medium"
           />
+          {sku.catalog_price && sku.catalog_price !== sku.master_price ? (
+            <Text style={styles.overrideBadge}>カタログ価格適用</Text>
+          ) : null}
+        </View>
+
+        <View style={styles.actionRow}>
+          {isAvailable ? (
+            <>
+              <QuantitySelector
+                quantity={quantity}
+                onQuantityChange={setQuantity}
+                disabled={isMutating}
+              />
+              <Button
+                title={isMutating ? '追加中...' : 'カート追加'}
+                onPress={handleAddToCart}
+                disabled={isMutating}
+                style={styles.cartButton}
+              />
+            </>
+          ) : (
+            <Button
+              title="注文不可"
+              variant="outline"
+              disabled={true}
+              style={styles.disabledButton}
+            />
+          )}
         </View>
       </View>
     </View>
@@ -98,24 +156,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   skuCode: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#208AEF',
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#64748B',
   },
   janCode: {
     fontSize: 11,
-    color: '#64748B',
+    color: '#94A3B8',
   },
   title: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#0F172A',
     marginVertical: 2,
   },
   specRow: {
     flexDirection: 'row',
-    gap: 6,
     flexWrap: 'wrap',
+    gap: 4,
     marginBottom: 6,
   },
   specTag: {
@@ -126,20 +184,27 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 4,
   },
-  footerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-    marginTop: 4,
+  priceRow: {
+    marginBottom: 8,
   },
   overrideBadge: {
     fontSize: 10,
-    color: '#059669',
+    color: '#2563EB',
     fontWeight: '600',
     marginTop: 2,
   },
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 8,
+  },
   cartButton: {
-    height: 34,
-    paddingHorizontal: 12,
+    flex: 1,
+    paddingVertical: 6,
+  },
+  disabledButton: {
+    width: '100%',
+    paddingVertical: 6,
   },
 });

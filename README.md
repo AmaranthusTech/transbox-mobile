@@ -32,6 +32,26 @@ TRANSBOX v2 のカスタマーエンドユーザー向け React Native / Expo �
   - 価格・在庫・納期の本文生成は禁止、テキスト回答は一般的な案内に限定。
   - クライアントメモリでの会話履歴管理、二重送信防止ロック、画面アンマウント時の AbortController キャンセル制御。
 
+### Phase 1-D-1 (カート基盤) - 完了
+- **バックエンドカート API**:
+  - `EndUserOrderRequest` (status="draft") を永続型カートとして再利用。
+  - カート取得 (`GET /api/end-user/cart/`)、明細追加 (`POST /api/end-user/cart/items/`)、置き換え追加 (`POST /api/end-user/cart/replace/`)、数量変更 (`PATCH /api/end-user/cart/items/{id}/`)、明細削除/一括クリア (`DELETE`)。
+  - 1 カート 1 カタログ制約 & 409 Conflict 判定。
+  - カート取得・操作ごとのリアルタイム動的適用価格計算。
+- **モバイルアプリ機能**:
+  - Zustand カートストア (`src/stores/cart.ts`) による表示用キャッシュとヘッダーバッジ動的更新 (`CartBadgeButton`)。
+  - 商品詳細画面 (`itemId.tsx`) の SKU カード (`SkuCard`) に数量操作 (`QuantitySelector`) と「カート追加」ボタンを連動。
+  - 別カタログ混在時の Alert 確認ダイアログ & カート置き換え追加機能。
+### Phase 1-D-2A (注文確認画面) - 完了
+- **注文確認画面** (`/(app)/order-confirm`):
+  - カート画面の「注文内容を確認する」ボタンより画面遷移。
+  - バックエンド最新カート API (`GET /api/end-user/cart/`) を再呼び出しして最新の適用価格・受入状態・申請者情報を表示。
+  - 所属カスタマー名、注文申請者名、連絡先メールアドレス、対象カタログ名、注文明細一覧、単価・数量・小計・税込合計金額のプレビュー表示。
+  - 空カート・削除済みカート時の保護表示および 注文受付不可時の赤系警告ボックス表示。
+  - 固定フッターに「注文を申請する (Phase 1-D-2B)」ボタン (disabled) を配置。
+
+
+
 ---
 
 ## 手動検証手順 (Phase 1-C)
