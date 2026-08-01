@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -16,7 +16,10 @@ import { PriceDisplay } from '@/components/catalog/PriceDisplay';
 export default function OrderConfirmScreen() {
   const router = useRouter();
   const { user } = useAuthStore();
-  const { cart, isLoading, error, fetchCart } = useCartStore();
+  const { cart, isLoading, isMutating, error, fetchCart, submitCart } = useCartStore();
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitInFlightRef = useRef(false);
 
   useEffect(() => {
     fetchCart();
@@ -33,9 +36,47 @@ export default function OrderConfirmScreen() {
   const requesterEmail = cart?.requester_email || user?.email || '-';
 
   const handleApplyOrderClick = () => {
+    if (!cart || !cart.order_available || isMutating || isSubmitting || submitInFlightRef.current) {
+      return;
+    }
+
     Alert.alert(
-      '確認',
-      '注文申請機能は次のフェーズ（Phase 1-D-2B）で対応予定です。現在のフェーズでは注文確認表示のみとなります。'
+      '注文申請の確定',
+      'この内容で注文を申請します。申請後はカート内容を変更できません。よろしいですか？',
+      [
+        { text: 'キャンセル', style: 'cancel' },
+        {
+          text: '注文を申請する',
+          style: 'default',
+          onPress: async () => {
+            if (submitInFlightRef.current) return;
+            submitInFlightRef.current = true;
+            setIsSubmitting(true);
+
+            const submittedOrder = await submitCart();
+
+            submitInFlightRef.current = false;
+            setIsSubmitting(false);
+
+            if (submittedOrder) {
+              router.replace({
+                pathname: '/(app)/order-complete',
+                params: {
+                  request_number: submittedOrder.request_number,
+                  submitted_at: submittedOrder.submitted_at,
+                  catalog_name: submittedOrder.catalog_name,
+                  customer_name: submittedOrder.customer_name,
+                  requester_name: submittedOrder.requester_name,
+                  requester_email: submittedOrder.requester_email,
+                  line_count: String(submittedOrder.line_count),
+                  total_quantity: String(submittedOrder.total_quantity),
+                  total_amount: submittedOrder.total_amount,
+                },
+              });
+            }
+          },
+        },
+      ]
     );
   };
 
@@ -164,8 +205,8 @@ export default function OrderConfirmScreen() {
             </View>
 
             <Button
-              title="注文を申請する (Phase 1-D-2B)"
-              disabled={true}
+              title={isSubmitting ? '申請送信中...' : '注文を申請する'}
+              disabled={!cart.order_available || isMutating || isSubmitting}
               onPress={handleApplyOrderClick}
               style={styles.applyButton}
             />

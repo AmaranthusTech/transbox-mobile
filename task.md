@@ -58,5 +58,27 @@
 - [x] 画面表示時の最新カート API (`GET /api/end-user/cart/`) 自動再取得
 - [x] 申請者情報・所属カスタマー名・対象カタログ名・明細プレビュー・単価・数量・小計・税込金額の表示
 - [x] 空カート保護表示 & 注文受付不可エラーボックス表示
-- [x] 固定フッター「注文を申請する (Phase 1-D-2B)」ボタン (disabled) 配置
+- [x] 固定フッター「注文を申請する」ボタンの配置
 - [x] ドキュメント更新 (仕様書, README.md, task.md)
+
+## Phase 1-D-2B (注文申請確定 - 実装完了)
+- [x] バックエンド 注文申請確定 API 追加 (`POST /api/end-user/cart/submit/`)
+- [x] `select_for_update()` & `transaction.atomic()` による二重送信ロック & 冪等処理
+- [x] カタログ権限・受付期間・掲載状態・SKU有効性・最新価格の直前再検証
+- [x] `EUO-YYYYMMDD-XXXX` プレフィックスによる自動連続採番
+- [x] `status="submitted"`, `submitted_at` 更新 & 監査ログ (`record_audit_log`) 記録
+- [x] モバイル API (`submitCart()`) & Zustand Store (`submitCart()`) 実装
+- [x] 注文確認画面 (`order-confirm.tsx`) の「注文を申請する」ボタン有効化 & 連打二重送信ロック (`submitInFlightRef`)
+- [x] 注文完了画面 (`src/app/(app)/order-complete.tsx`) の新設 & 申請サマリー表示
+## Phase 1-E (注文履歴・注文詳細 - 実装完了)
+- [x] バックエンド 注文履歴一覧・詳細 API 強化 (`GET /api/end-user/requests/`, `GET /api/end-user/requests/{id}/`)
+- [x] 認可制御 (カスタマー所属スコープ化 & `status="draft"` カートの自動除外)
+- [x] 申請時スナップショット価格（`unit_price_snapshot`, `line_amount`, `total_amount`）および代表画像・明細画像の安全な返却
+- [x] 検索 (`search`), ステータスフィルタ (`status`), カタログフィルタ (`catalog_id`), ページネーション対応
+- [x] 採番日付プレフィックスのローカルタイムゾーン化 (`timezone.localtime(now)`)
+- [x] モバイル 型定義 (`src/types/orderHistory.ts`) & API クライアント (`src/api/orderHistory.ts`) 実装
+- [x] モバイル カスタムフック (`useOrderHistory`, `useOrderHistoryDetail`) 実装 (AbortController & 無限追加読み込み対応)
+- [x] 注文履歴一覧画面 (`src/app/(app)/orders/index.tsx`) & カードコンポーネント (`OrderHistoryCard.tsx`) 実装
+- [x] 注文詳細画面 (`src/app/(app)/orders/[requestId].tsx`) 実装 (スナップショット固定表示)
+- [x] ホーム画面 (`index.tsx`) および 注文完了画面 (`order-complete.tsx`) からの履歴遷移導線有効化
+- [x] ドキュメント更新 (仕様書, README.md, task.md, implementation_plan.md)

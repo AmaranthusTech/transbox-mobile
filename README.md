@@ -48,7 +48,18 @@ TRANSBOX v2 のカスタマーエンドユーザー向け React Native / Expo �
   - バックエンド最新カート API (`GET /api/end-user/cart/`) を再呼び出しして最新の適用価格・受入状態・申請者情報を表示。
   - 所属カスタマー名、注文申請者名、連絡先メールアドレス、対象カタログ名、注文明細一覧、単価・数量・小計・税込合計金額のプレビュー表示。
   - 空カート・削除済みカート時の保護表示および 注文受付不可時の赤系警告ボックス表示。
-  - 固定フッターに「注文を申請する (Phase 1-D-2B)」ボタン (disabled) を配置。
+
+### Phase 1-E (注文履歴・注文詳細) - 完了
+- **バックエンド履歴 API** (`GET /api/end-user/requests/` & `GET /api/end-user/requests/{id}/`):
+  - カスタマー権限スコープ制御・ドラフト (`status="draft"`) 自動除外。
+  - キーワード検索 (`search`), ステータス一致 (`status`), カタログID一致 (`catalog_id`) および標準ページネーション対応。
+  - 保存済みスナップショット価格（`unit_price_snapshot`, `line_amount`, `total_amount`）の固定表示保証。
+- **モバイルアプリ機能** (`/(app)/orders/` & `/(app)/orders/[requestId]`):
+  - `useOrderHistory` および `useOrderHistoryDetail` カスタムフックによるデータ取得と `AbortController` キャンセル制御。
+  - Pull to Refresh (`RefreshControl`), 無限スクロール追加読み込み, 検索フィルタ機能。
+  - ホーム画面 (`index.tsx`) および注文完了画面 (`order-complete.tsx`) からの注文履歴画面へのスムーズな遷移導線。
+
+
 
 
 

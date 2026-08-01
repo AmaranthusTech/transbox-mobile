@@ -3,6 +3,7 @@ import {
   Cart,
   AddCartItemPayload,
   UpdateCartLinePayload,
+  SubmittedOrder,
 } from '@/types';
 
 export const cartApi = {
@@ -33,5 +34,10 @@ export const cartApi = {
 
   clearCart: async (): Promise<void> => {
     await tenantApiClient.delete('/api/end-user/cart/');
+  },
+
+  submitCart: async (): Promise<SubmittedOrder> => {
+    const res = await tenantApiClient.post<{ request: SubmittedOrder }>('/api/end-user/cart/submit/');
+    return res.data.request;
   },
 };

@@ -34,6 +34,21 @@ export default function HomeScreen() {
         </View>
       </TouchableOpacity>
 
+      <TouchableOpacity
+        style={[styles.heroCard, styles.historyHeroCard]}
+        onPress={() => router.push('/orders')}
+        activeOpacity={0.8}
+      >
+        <Text style={styles.heroBadge}>ORDER HISTORY</Text>
+        <Text style={styles.heroTitle}>過去の注文履歴</Text>
+        <Text style={styles.heroDescription}>
+          過去に提出した注文申請の一覧・ステータスおよび申請詳細を確認できます。
+        </Text>
+        <View style={styles.heroButtonRow}>
+          <Text style={styles.heroButtonText}>注文履歴を見る →</Text>
+        </View>
+      </TouchableOpacity>
+
       <View style={styles.card}>
         <Text style={styles.welcomeTitle}>
           ようこそ、{user?.display_name || 'ユーザー'} さん
@@ -95,15 +110,18 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   heroCard: {
-    backgroundColor: '#208AEF',
+    backgroundColor: '#1E40AF',
     borderRadius: 16,
-    padding: 24,
-    marginBottom: 20,
+    padding: 20,
+    marginBottom: 16,
     shadowColor: '#208AEF',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 10,
     elevation: 4,
+  },
+  historyHeroCard: {
+    backgroundColor: '#0F766E',
   },
   heroBadge: {
     alignSelf: 'flex-start',

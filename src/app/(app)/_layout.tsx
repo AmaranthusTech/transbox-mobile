@@ -68,6 +68,28 @@ export default function AppLayout() {
           headerBackTitle: 'カート',
         }}
       />
+      <Stack.Screen
+        name="order-complete"
+        options={{
+          title: '注文申請完了',
+          headerLeft: () => null,
+          gestureEnabled: false,
+        }}
+      />
+      <Stack.Screen
+        name="orders/index"
+        options={{
+          title: '注文履歴',
+          headerBackTitle: '戻る',
+        }}
+      />
+      <Stack.Screen
+        name="orders/[requestId]"
+        options={{
+          title: '注文詳細',
+          headerBackTitle: '履歴一覧',
+        }}
+      />
     </Stack>
   );
 }

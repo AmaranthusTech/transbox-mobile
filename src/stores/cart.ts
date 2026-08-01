@@ -6,6 +6,7 @@ import {
   UpdateCartLinePayload,
   ApiError,
   CartCatalogConflictError,
+  SubmittedOrder,
 } from '@/types';
 import { isAxiosError } from 'axios';
 
@@ -21,6 +22,7 @@ export interface CartState {
   updateLine: (lineId: number, payload: UpdateCartLinePayload) => Promise<boolean>;
   removeLine: (lineId: number) => Promise<boolean>;
   clearCart: () => Promise<boolean>;
+  submitCart: () => Promise<SubmittedOrder | null>;
   reset: () => void;
   clearError: () => void;
 }
@@ -125,6 +127,35 @@ export const useCartStore = create<CartState>((set, get) => ({
       const apiErr: ApiError = err.response?.data?.error || { message: 'カートの全削除に失敗しました。' };
       set({ error: apiErr, isMutating: false });
       return false;
+    }
+  },
+
+  submitCart: async () => {
+    set({ isMutating: true, error: null });
+    try {
+      const order = await cartApi.submitCart();
+      set({
+        cart: {
+          id: null,
+          status: 'empty',
+          catalog: null,
+          lines: [],
+          line_count: 0,
+          total_quantity: 0,
+          subtotal: '0.00',
+          order_available: false,
+          order_unavailable_reason: null,
+          updated_at: null,
+        },
+        isMutating: false,
+      });
+      return order;
+    } catch (err: any) {
+      const apiErr: ApiError = err.response?.data?.error || {
+        message: err.response?.data?.detail || err.response?.data?.error || '注文申請の送信に失敗しました。',
+      };
+      set({ error: apiErr, isMutating: false });
+      return null;
     }
   },
 

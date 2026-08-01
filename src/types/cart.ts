@@ -62,3 +62,22 @@ export interface CartCatalogConflictError {
     name: string;
   };
 }
+
+export interface SubmittedOrder {
+  id: number;
+  request_number: string;
+  status: string;
+  submitted_at: string;
+  catalog_id: number;
+  catalog_name: string;
+  customer_name: string;
+  requester_name: string;
+  requester_email: string;
+  line_count: number;
+  total_quantity: number;
+  total_amount: string;
+}
+
+export interface CartSubmitResponse {
+  request: SubmittedOrder;
+}
