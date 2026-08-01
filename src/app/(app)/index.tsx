@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui';
@@ -15,16 +15,28 @@ export default function HomeScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.card}>
-        <View style={styles.statusBadge}>
-          <Text style={styles.statusBadgeText}>Phase 1-A 完了</Text>
+      <TouchableOpacity
+        style={styles.heroCard}
+        onPress={() => router.push('/(app)/catalogs')}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel="カタログ一覧を見る"
+      >
+        <View style={styles.heroBadge}>
+          <Text style={styles.heroBadgeText}>Phase 1-B</Text>
         </View>
+        <Text style={styles.heroTitle}>デジタルカタログを閲覧</Text>
+        <Text style={styles.heroSubtitle}>
+          公開カタログ一覧、掲載商品および価格・SKU一覧を確認できます。
+        </Text>
+        <View style={styles.heroButtonRow}>
+          <Text style={styles.heroButtonText}>カタログ一覧を見る →</Text>
+        </View>
+      </TouchableOpacity>
 
+      <View style={styles.card}>
         <Text style={styles.welcomeTitle}>
           ようこそ、{user?.display_name || 'ユーザー'} さん
-        </Text>
-        <Text style={styles.welcomeSubtitle}>
-          認証基盤、動的テナントドメイン解決、および共通APIクライアントの設定が完了しました。
         </Text>
 
         <View style={styles.divider} />
@@ -57,13 +69,6 @@ export default function HomeScreen() {
           ) : null}
         </View>
 
-        <View style={styles.nextPhaseCard}>
-          <Text style={styles.nextPhaseTitle}>準備完了</Text>
-          <Text style={styles.nextPhaseText}>
-            Phase 1-B（カタログ閲覧）、Phase 1-C（会話型RAG検索）、Phase 1-D（注文申請）の実装準備が整いました。
-          </Text>
-        </View>
-
         <View style={styles.actions}>
           <Link href="/(app)/profile" asChild>
             <Button
@@ -89,6 +94,54 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
   },
+  heroCard: {
+    backgroundColor: '#208AEF',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 20,
+    shadowColor: '#208AEF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  heroBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  heroBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  heroTitle: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    fontWeight: '800',
+    marginBottom: 6,
+  },
+  heroSubtitle: {
+    color: '#E0F2FE',
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  heroButtonRow: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  heroButtonText: {
+    color: '#208AEF',
+    fontWeight: '700',
+    fontSize: 14,
+  },
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
@@ -101,34 +154,15 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 2,
   },
-  statusBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#DCFCE7',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  statusBadgeText: {
-    color: '#166534',
-    fontSize: 12,
-    fontWeight: '700',
-  },
   welcomeTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
     color: '#0F172A',
-    marginBottom: 4,
-  },
-  welcomeSubtitle: {
-    fontSize: 14,
-    color: '#64748B',
-    lineHeight: 20,
   },
   divider: {
     height: 1,
     backgroundColor: '#F1F5F9',
-    marginVertical: 20,
+    marginVertical: 16,
   },
   infoSection: {
     marginBottom: 20,
@@ -154,25 +188,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#0F172A',
-  },
-  nextPhaseCard: {
-    backgroundColor: '#F0F9FF',
-    borderColor: '#BAE6FD',
-    borderWidth: 1,
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 24,
-  },
-  nextPhaseTitle: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#0369A1',
-    marginBottom: 4,
-  },
-  nextPhaseText: {
-    fontSize: 13,
-    color: '#0284C7',
-    lineHeight: 18,
   },
   actions: {
     gap: 12,

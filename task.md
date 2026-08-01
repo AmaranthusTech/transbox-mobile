@@ -1,5 +1,6 @@
-# TRANSBOX Mobile Phase 1-A タスクリスト
+# TRANSBOX Mobile Phase 1-A & Phase 1-B タスクリスト
 
+## Phase 1-A
 - [x] 現状構成確認
 - [x] 依存関係整理 (axios, zustand, expo-secure-store, react-hook-form)
 - [x] 環境変数設定 (src/config/env.ts, .env.example, .gitignore)
@@ -13,6 +14,16 @@
 - [x] ログイン画面 (src/app/(auth)/login.tsx) - 3項目入力 (テナントコード, email, password) & バリデーション
 - [x] ホーム画面 (src/app/(app)/index.tsx)
 - [x] プロフィール画面 (src/app/(app)/profile/index.tsx) - 接続テナント情報表示
-- [x] UI共通基盤 (SafeArea, ErrorMessage, LoadingOverlay, Button, Input)
+
+## Phase 1-B (カタログ一覧・商品閲覧)
+- [x] バックエンド API の拡張・新設 (GET /api/end-user/catalogs/, detail, items, item detail)
+- [x] カタログ・商品・SKU・画像・価格の型定義 (`src/types/catalog.ts`)
+- [x] API クライアント (`src/api/catalogs.ts`)
+- [x] カスタムフック (`useCatalogs`, `useCatalogItems`, `useItemDetail`)
+- [x] 共通コンポーネント (`CatalogCard`, `ItemCard`, `SkuCard`, `ItemImage`, `PriceDisplay`)
+- [x] ホーム画面「カタログを見る」導線追加 (`src/app/(app)/index.tsx`)
+- [x] カタログ一覧画面 (`src/app/(app)/catalogs/index.tsx`)
+- [x] カタログ詳細 & 商品一覧画面 (`src/app/(app)/catalogs/[catalogId]/index.tsx`) - 検索バー・Debounce・Pagination
+- [x] 商品詳細 & SKU 一覧画面 (`src/app/(app)/catalogs/[catalogId]/items/[itemId].tsx`)
+- [x] ドキュメント更新 (README.md, 仕様書)
 - [x] 差分確認 (git status, diff)
-- [x] ドキュメント更新 (README.md)

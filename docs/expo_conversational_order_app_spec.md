@@ -1054,3 +1054,24 @@ AI / LLM が直接実施することは**絶対禁止**とし、必ず Django Se
 [ Phase 4: MCP 統合・マルチエージェント型 (MCP Ecosystem) ]
  └─ Agent Runtime と MCP Server (Tool) の完全分離、標準プロトコルによる高度な外部ツール連携
 ```
+
+---
+
+## 24. Phase 1-B 実装仕様補足 (カタログ一覧・商品閲覧)
+
+### 24.1 採用 API エンドポイント
+- `GET /api/end-user/catalogs/`: カタログ一覧 (ページネーション、`cover_image`, `order_available` 対応)
+- `GET /api/end-user/catalogs/{catalog_id}/`: カタログ詳細
+- `GET /api/end-user/catalogs/{catalog_id}/items/`: 掲載商品一覧 (`page`, `page_size`, `search` パラメータ、N+1 対策済み)
+- `GET /api/end-user/catalogs/{catalog_id}/items/{item_id}/`: 商品詳細 & 掲載 SKU 一覧
+
+### 24.2 カタログ公開・掲載条件
+- `is_active=True`, `catalog_type="digital"`
+- `CatalogCustomerPolicy` & `CatalogCustomerAccess` (対象顧客割り当て)
+- `CatalogWorkflowStage` ("customer_delivery" ステータスが `ACTIVE` または `COMPLETED`)
+- 商品掲載: `CatalogItemListing.is_listed=True`, `Item.is_active=True`
+- SKU掲載: `CatalogSkuListing.is_listed=True`, `ItemSku.is_active=True`
+
+### 24.3 価格 & 画像表示ルール
+- 価格はバックエンド側で `CatalogSkuListing.price_override` > `ItemSkuPrice.amount` の優先順位を計算し、`effective_amount` を文字列として返却。原価 (`cost_price`) は一切含めない。
+- 画像は `thumbnail_url` > `preview_url` > `url` 優先選択。`expo-image` によるキャッシュとプレースホルダーフォールバックを適用。

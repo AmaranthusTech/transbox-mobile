@@ -4,80 +4,50 @@ TRANSBOX v2 のカスタマーエンドユーザー向け React Native / Expo �
 
 ---
 
-## Phase 1-A 実装概要
+## 実装状態
 
-本フェーズ (Phase 1-A) では、動的テナント解決 (パターンB) を含む以下の共通基盤および認証機能を実装しています。
+### Phase 1-A (認証 & 共通基盤) - 完了
+- 動的テナントドメイン解決 (`POST /api/public/tenant-resolve/`)
+- Zustand 認証ストア (`src/stores/auth.ts`)
+- `expo-secure-store` による暗号化トークン・ドメイン保持
+- 401 発生時の Promise Queue による Single-flight 自動 Refresh 制御
+- Expo Router 認証ガードリダイレクト
+- ログイン、ホーム、プロフィール画面
 
-- **動的テナント解決**: `POST /api/public/tenant-resolve/`
-  - ユーザーが入力したテナントコード (例: `bg-beta`) を public schema 上で検索し、アクティブなテナントの接続ドメイン (`bg-beta.transbox.tech`) を取得。
-  - 安全な HTTPS URL (`https://bg-beta.transbox.tech`) を動的に構築し、Axios の `baseURL` を切り替えてログインを実行。
-- **認証状態管理**: Zustand (`src/stores/auth.ts`, `src/hooks/useAuth.ts`)
-- **安全なトークン保存**: `expo-secure-store` による Keychain / Keystore への暗号化保存 (`src/api/secureStore.ts`)
-  - `access_token`, `refresh_token`, `resolved_tenant_code`, `resolved_api_base_url`
-- **APIクライアント**: Axios ラッパー (`src/api/client.ts`)
-  - 動的 BaseURL 変更および安全な URL 形式チェック
-  - JWT Bearer Token 自動付与
-  - 本番環境では `X-Tenant-Schema` を非付与 (`__DEV__` かつ設定時のみのデバッグ利用)
-  - 401 発生時の自動 Token Refresh & 1回リトライ制御 (Promise Queue による Single-flight 排他制御)
-  - Refresh 失敗時の SecureStore データ削除および自動ログアウト処理
-  - エラーの正規化 (`ApiError`)
-- **ルーティング & 認証ガード**: Expo Router v4/v5 (`src/app/` ベース)
-  - 未認証時: `/(auth)/login` へ遷移
-  - 認証済み時: `/(app)` ホーム画面へ遷移
-  - アプリ起動時の自動 token/user/URL 復元 (Hydration)
-- **画面**:
-  - `/(auth)/login`: テナントコード・メール・パスワードの3項目ログイン、入力完了までボタン無効化、エラー表示、SafeArea/キーボード対応
-  - `/(app)`: ホーム画面 (ログインユーザー情報表示、Phase 1-A 完了確認)
-  - `/(app)/profile`: プロフィール情報 & 接続テナント情報表示、ログアウト機能
-
----
-
-## バックエンド追加機能
-
-- **Public テナント解決 API**: `POST /api/public/tenant-resolve/`
-  - パッケージ: `app/features/public_tenant_resolve/`
-  - 引数: `{ "code": "bg-beta" }`
-  - 返却: `{ "code": "bg-beta", "name": "bg-beta", "domain": "bg-beta.transbox.tech" }`
-  - 認証なし・public schema 実行、レート制限 (30 req/min) 適用。
+### Phase 1-B (カタログ一覧・商品閲覧) - 完了
+- **公開カタログ一覧画面** (`/(app)/catalogs`):
+  - ログイン中ユーザーの所属カスタマーに割り当てられた公開デジタルカタログの一覧表示。
+  - `FlatList` + `RefreshControl` による Pull to Refresh。
+  - 受付可能状態（受付中 / 受付期間外）のバッジ表示。
+- **カタログ詳細 & 商品一覧画面** (`/(app)/catalogs/[catalogId]`):
+  - 掲載商品のページネーション付き無限スクロール。
+  - リアルタイム検索バー (350ms デバウンス, AbortController キャンセル制御付き)。
+  - 商品名、コード、ブランド、カテゴリ、掲載 SKU 数、最小〜最大価格範囲を表示。
+- **商品詳細 & 掲載 SKU 一覧画面** (`/(app)/catalogs/[catalogId]/items/[itemId]`):
+  - 商品詳細情報 (表示名, 説明, 仕様, ブランド, カテゴリ, 画像)。
+  - 掲載対象 SKU 一覧 (SKUコード, JANコード, 色・サイズ, 適用価格, カタログ価格適用バッジ)。
+  - カート追加ボタンは disabled 表示 (Phase 1-D で対応予定)。
+- **価格・画像処理**:
+  - バックエンド解決済みの有効金額 (`effective_amount`) を返却・表示。サプライヤー向け原価 (`cost_price`) は完全除外。
+  - `expo-image` による `thumbnail_url` > `preview_url` > `url` 優先描画、プレースホルダーフォールバック、PSD 派生 PNG 表示対応。
 
 ---
 
-## セットアップ & 環境変数
+## バックエンドエンドポイント (Phase 1-B)
 
-### 1. 依存関係のインストール
-
-```bash
-npm install
-```
-
-### 2. 環境変数設定
-
-ルートディレクトリに `.env` ファイルを作成し、以下のように設定してください (`.env.example` 参照)。
-
-```env
-# API Base URL (ルート/初期ドメイン解決用)
-EXPO_PUBLIC_API_BASE_URL=https://bg-beta.transbox.tech
-
-# オプション: テナントスキーマヘッダー (開発・デバッグ用のみ)
-EXPO_PUBLIC_TENANT_SCHEMA=tenant_bg_beta
-
-# API タイムアウト (ミリ秒)
-EXPO_PUBLIC_API_TIMEOUT_MS=30000
-```
+- `GET /api/end-user/catalogs/` - カタログ一覧 (ページネーション対応)
+- `GET /api/end-user/catalogs/{catalog_id}/` - カタログ詳細
+- `GET /api/end-user/catalogs/{catalog_id}/items/` - カタログ掲載商品一覧 (`page`, `page_size`, `search` クエリ)
+- `GET /api/end-user/catalogs/{catalog_id}/items/{item_id}/` - 商品詳細 & SKU 一覧
 
 ---
 
-## 手動検証手順 (開発者用)
+## 手動検証手順
 
-1. **アプリ起動と初回ルーティング**
-   - トークンが未保存の場合、即座にログイン画面 (`/(auth)/login`) へ遷移することを確認。
-2. **動的テナント解決 & ログイン**
-   - テナントコード (例: `bg-beta`)、メールアドレス、パスワードを入力（3項目揃うまでログインボタンは押せません）。
-   - 「ログイン」をタップすると `POST /api/public/tenant-resolve/` が呼ばれ、ドメイン解決後に該当テナントへログインすることを確認。
-3. **認証情報の永続化 (Hydration)**
-   - ログイン後にアプリをリロード/再起動しても、保存された Base URL が復元され、ホーム画面へ自動的に復元されることを確認。
-4. **401 Token Refresh**
-   - アクセストークン失効時に API リクエストを行うと、自動的に Refresh API が呼ばれ、新しいアクセストークンでリトライが成功することを確認。
-5. **ログアウト**
-   - プロフィール画面 (`/(app)/profile`) またはホーム画面から「ログアウト」をタップ。
-   - SecureStore からトークン・テナント情報がクリアされ、ログイン画面へ遷移することを確認。
+1. `npx expo start` を実行し、アプリを起動。
+2. ログイン完了後、ホーム画面の「デジタルカタログを閲覧」カードまたは「カタログ一覧を見る」をタップ。
+3. 利用可能なカタログ一覧が表示され、Pull to Refresh で更新できることを確認。
+4. カタログをタップし、掲載商品一覧が開くことを確認。
+5. 検索バーにキーワード（例: 商品名や商品コードの一部）を入力し、350ms 後に検索結果が更新されることを確認。
+6. リストをスクロールし、追加商品が読み込まれることを確認。
+7. 商品をタップし、商品詳細・説明・仕様・掲載 SKU 一覧および価格が正しく表示されることを確認。
