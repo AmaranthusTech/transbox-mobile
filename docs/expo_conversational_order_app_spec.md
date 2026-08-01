@@ -1075,3 +1075,20 @@ AI / LLM が直接実施することは**絶対禁止**とし、必ず Django Se
 ### 24.3 価格 & 画像表示ルール
 - 価格はバックエンド側で `CatalogSkuListing.price_override` > `ItemSkuPrice.amount` の優先順位を計算し、`effective_amount` を文字列として返却。原価 (`cost_price`) は一切含めない。
 - 画像は `thumbnail_url` > `preview_url` > `url` 優先選択。`expo-image` によるキャッシュとプレースホルダーフォールバックを適用。
+
+---
+
+## 25. Phase 1-C 実装仕様補足 (会話型RAG検索)
+
+### 25.1 採用 API エンドポイント
+- `POST /api/end-user/catalogs/{catalog_id}/ai-search/`: エンドユーザー向けカタログ限定 AI RAG 検索 API
+
+### 25.2 カタログスコープ & 認可制御
+- `EndUserOrCustomerActorPermission` による JWT 認証・カスタマー所属・カタログ閲覧権限の検証。
+- 検索対象は当該 `catalog_id` に掲載されている商品 (`CatalogItemListing.is_listed=True`, `Item.is_active=True`) のみに DB レベルで pgvector フィルタリングを適用。他カタログや未公開商品の情報は一切検索・返却しない。
+
+### 25.3 RAG 回答 & セキュリティルール
+- AI による回答テキストでは価格、在庫、納期、注文可否の断定・数出力を厳しく禁止。
+- 静的パターン (`FORBIDDEN_LLM_PATTERNS`) および動的チェック（ソース未含有商品名の混入防止）を実施し、違反時は安全な固定案内にフォールバック。
+- 回答ソースとして `catalog_item_listing_id`, `item_id`, `display_name`, `brand_name`, `category_name`, `similarity`, `primary_image`, `sku_count`, `min_price`, `max_price` を構造化返却。
+- モバイルアプリ側はクライアントメモリにて会話状態を保持し、二重送信ロックおよび AbortController キャンセル制御を実施。

@@ -6,6 +6,7 @@ import {
   FlatList,
   RefreshControl,
   ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { useCatalogItems } from '@/hooks/useCatalogItems';
@@ -36,6 +37,13 @@ export default function CatalogItemsScreen() {
     router.push({
       pathname: '/(app)/catalogs/[catalogId]/items/[itemId]',
       params: { catalogId, itemId: item.item_id },
+    });
+  };
+
+  const handleOpenAiChat = () => {
+    router.push({
+      pathname: '/(app)/catalogs/[catalogId]/chat',
+      params: { catalogId },
     });
   };
 
@@ -70,6 +78,17 @@ export default function CatalogItemsScreen() {
                 {catalog.description}
               </Text>
             ) : null}
+
+            <TouchableOpacity
+              style={styles.aiChatButton}
+              onPress={handleOpenAiChat}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="AIアシスタントに聞く"
+            >
+              <Text style={styles.aiChatButtonBadge}>AI RAG</Text>
+              <Text style={styles.aiChatButtonText}>AIアシスタントに質問する →</Text>
+            </TouchableOpacity>
           </View>
         ) : null}
 
@@ -181,6 +200,30 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#64748B',
     lineHeight: 18,
+  },
+  aiChatButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#208AEF',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginTop: 10,
+    gap: 8,
+  },
+  aiChatButtonBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  aiChatButtonText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
   },
   searchInput: {
     height: 42,
