@@ -37,6 +37,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "f323020d-2f74-4c09-828c-dcd44e1cec8f"
+      }
+    },
+    "owner": "amaranthus.tech"
   }
 }
