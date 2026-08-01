@@ -49,15 +49,13 @@ TRANSBOX v2 のカスタマーエンドユーザー向け React Native / Expo �
   - 所属カスタマー名、注文申請者名、連絡先メールアドレス、対象カタログ名、注文明細一覧、単価・数量・小計・税込合計金額のプレビュー表示。
   - 空カート・削除済みカート時の保護表示および 注文受付不可時の赤系警告ボックス表示。
 
-### Phase 1-E (注文履歴・注文詳細) - 完了
-- **バックエンド履歴 API** (`GET /api/end-user/requests/` & `GET /api/end-user/requests/{id}/`):
-  - カスタマー権限スコープ制御・ドラフト (`status="draft"`) 自動除外。
-  - キーワード検索 (`search`), ステータス一致 (`status`), カタログID一致 (`catalog_id`) および標準ページネーション対応。
-  - 保存済みスナップショット価格（`unit_price_snapshot`, `line_amount`, `total_amount`）の固定表示保証。
-- **モバイルアプリ機能** (`/(app)/orders/` & `/(app)/orders/[requestId]`):
-  - `useOrderHistory` および `useOrderHistoryDetail` カスタムフックによるデータ取得と `AbortController` キャンセル制御。
-  - Pull to Refresh (`RefreshControl`), 無限スクロール追加読み込み, 検索フィルタ機能。
-  - ホーム画面 (`index.tsx`) および注文完了画面 (`order-complete.tsx`) からの注文履歴画面へのスムーズな遷移導線。
+### Phase 1-F-1 (AI会話から直接カート追加) - 完了
+- **AI 会話からの安全なカート追加フロー**:
+  - AI 候補商品カードに「SKUを選んでカートに追加」ボタンを追加。
+  - 選択時に既存の商品詳細 API (`getItemDetail`) から最新構造化 SKU 情報を動的取得。AI/LLM に推測させず全数ユーザーに確認・指定させる設計。
+  - `SkuSelectionModal` (React Native 標準 Modal) による SKU ラジオ選択, 適用単価・注文不可理由表示, `QuantitySelector` 数量指定。
+  - Zustand `cartStore` 連動、別カタログ競合 (HTTP 409) 時の「カートを置き換える」確認アラート対応、ヘッダーバッジ同期および「カートを見る 🛒」/「会話を続ける」選択肢の提供。
+
 
 
 

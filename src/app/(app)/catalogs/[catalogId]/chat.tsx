@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,13 +7,16 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { useCatalogChat } from '@/hooks/useCatalogChat';
 import { useCatalogItems } from '@/hooks/useCatalogItems';
+import { useCartStore } from '@/stores/cart';
 import { ChatBubble, ChatInput } from '@/components/chat';
+import { SkuSelectionModal } from '@/components/chat/SkuSelectionModal';
 import { ErrorMessage } from '@/components/ui';
-import { CatalogRagSource } from '@/types';
+import { CatalogRagSource, ProductDetail, SkuItem } from '@/types';
 
 export default function CatalogChatScreen() {
   const params = useLocalSearchParams<{ catalogId: string }>();
@@ -22,6 +25,10 @@ export default function CatalogChatScreen() {
 
   const { catalog } = useCatalogItems(catalogId);
   const { messages, input, setInput, isSending, error, sendMessage } = useCatalogChat(catalogId);
+  const { addItem, replaceItem, cart, isMutating } = useCartStore();
+
+  const [selectedSourceForSku, setSelectedSourceForSku] = useState<CatalogRagSource | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -34,6 +41,63 @@ export default function CatalogChatScreen() {
       pathname: '/(app)/catalogs/[catalogId]/items/[itemId]',
       params: { catalogId, itemId: source.item_id },
     });
+  };
+
+  const handleOpenSkuModal = (source: CatalogRagSource) => {
+    setSelectedSourceForSku(source);
+    setIsModalOpen(true);
+  };
+
+  const executeAddToCart = async (
+    itemDetail: ProductDetail,
+    selectedSku: SkuItem,
+    quantity: number,
+    replace = false
+  ): Promise<boolean> => {
+    if (!selectedSku.sku_id) return false;
+
+    const payload = {
+      catalog_id: catalogId,
+      item_sku_id: selectedSku.sku_id,
+      quantity,
+    };
+
+    try {
+      if (replace) {
+        await replaceItem(payload);
+      } else {
+        const result = await addItem(payload);
+        if (result.conflict) {
+          throw { response: { data: { error: { code: 'cart_catalog_conflict' } } } };
+        }
+      }
+      return true;
+    } catch (err: any) {
+      const errCode = err?.response?.data?.error?.code;
+      const errMsg = err?.response?.data?.error?.message;
+
+      if (errCode === 'cart_catalog_conflict') {
+        const conflictCatalogName = cart?.catalog_name || '別カタログ';
+        Alert.alert(
+          '別カタログの商品が存在します',
+          `現在のカートには「${conflictCatalogName}」の商品が入っています。\nカートをクリアして「${catalog?.name || '現在のカタログ'}」の商品を追加しますか？`,
+          [
+            { text: 'キャンセル', style: 'cancel' },
+            {
+              text: 'カートを置き換える',
+              style: 'destructive',
+              onPress: async () => {
+                await executeAddToCart(itemDetail, selectedSku, quantity, true);
+              },
+            },
+          ]
+        );
+        return false;
+      }
+
+      Alert.alert('カート追加エラー', errMsg || 'カートへの追加に失敗しました。');
+      return false;
+    }
   };
 
   return (
@@ -70,7 +134,12 @@ export default function CatalogChatScreen() {
         </View>
 
         {messages.map((msg) => (
-          <ChatBubble key={msg.id} message={msg} onSelectSource={handleSelectSource} />
+          <ChatBubble
+            key={msg.id}
+            message={msg}
+            onSelectSource={handleSelectSource}
+            onSelectSku={handleOpenSkuModal}
+          />
         ))}
 
         {isSending ? (
@@ -92,6 +161,18 @@ export default function CatalogChatScreen() {
         onChangeText={setInput}
         onSend={() => sendMessage()}
         disabled={isSending}
+      />
+
+      <SkuSelectionModal
+        visible={isModalOpen}
+        catalogId={catalogId}
+        source={selectedSourceForSku}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedSourceForSku(null);
+        }}
+        onAddToCart={executeAddToCart}
+        isSubmitting={isMutating}
       />
     </KeyboardAvoidingView>
   );

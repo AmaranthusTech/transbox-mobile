@@ -1139,3 +1139,14 @@ AI / LLM が直接実施することは**絶対禁止**とし、必ず Django Se
 - **アプリ内導線**:
   - ホーム画面 (`index.tsx`) に「過去の注文履歴を見る」カードを追加。
   - 注文完了画面 (`order-complete.tsx`) の「注文履歴を見る」ボタンを有効化。
+
+---
+
+## 30. Phase 1-F-1 AI会話から直接カート追加仕様 (モバイル実装)
+- **SKU選択モーダル**: `src/components/chat/SkuSelectionModal.tsx`
+  - React Native 標準 `Modal` を使用したボトムシートダイアログ。
+  - 選択した候補商品の `getItemDetail(catalogId, itemId)` を呼び出し、最新構造化 SKU リスト、適用単価、注文不可理由を取得・表示。
+- **数量指定 & 確認**: `QuantitySelector` (1〜999) による数量選択。
+- **既存カートStore連動**: Zustand `cartStore` (`addItem`, `replaceCartItem`) およびヘッダーカートバッジ自動同期。
+- **競合モーダル**: 別カタログ商品混在時 (HTTP 409) の「カートを置き換える」確認 Alert アラートの表示。
+- **成功フィードバック**: チャットへの追加完了システムメッセージ挿入および「カートを見る 🛒」/「会話を続ける」導線提供。

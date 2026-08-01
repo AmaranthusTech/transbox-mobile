@@ -80,5 +80,14 @@
 - [x] モバイル カスタムフック (`useOrderHistory`, `useOrderHistoryDetail`) 実装 (AbortController & 無限追加読み込み対応)
 - [x] 注文履歴一覧画面 (`src/app/(app)/orders/index.tsx`) & カードコンポーネント (`OrderHistoryCard.tsx`) 実装
 - [x] 注文詳細画面 (`src/app/(app)/orders/[requestId].tsx`) 実装 (スナップショット固定表示)
-- [x] ホーム画面 (`index.tsx`) および 注文完了画面 (`order-complete.tsx`) からの履歴遷移導線有効化
-- [x] ドキュメント更新 (仕様書, README.md, task.md, implementation_plan.md)
+## Phase 1-F-1 (AI会話から直接カート追加 - 実装完了)
+- [x] 現状コード調査 (商品詳細API, AI検索API, SkuCard, cartStore)
+- [x] AI検索レスポンス vs 既存商品詳細APIの比較検討 (安全な商品詳細API再利用の選択)
+- [x] 会話型検索画面 (`chat.tsx`) の RAG カード (`RagItemCard`) に「SKUを選んでカート追加」ボタンを追加
+- [x] React Native 標準 `Modal` による SKU 選択モーダル (`SkuSelectionModal.tsx`) の作成
+- [x] モーダル内での SKU 掲載状態、適用価格、注文可否理由、`QuantitySelector` 数量指定の実装
+- [x] 既存カート API (`addItem`, `replaceCartItem`) および Zustand `cartStore` との連動
+- [x] 別カタログ競合 (HTTP 409) 時のアラートと「カートを置き換える」対応
+- [x] カート追加成功時のシステムメッセージ挿入および「カートを見る」導線表示
+- [x] 二重送信防止・全数手動確認設計
+- [x] ドキュメント更新 (仕様書, README.md, task.md)
