@@ -1,18 +1,41 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+import React, { useEffect } from 'react';
+import { Slot, useRouter, useSegments } from 'expo-router';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useAuth } from '@/hooks/useAuth';
+import { LoadingOverlay } from '@/components/ui';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+export default function RootLayout() {
+  const { isHydrated, isAuthenticated, hydrate } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
 
-SplashScreen.preventAutoHideAsync();
+  useEffect(() => {
+    hydrate();
+  }, []);
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  useEffect(() => {
+    if (!isHydrated) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (!isAuthenticated && !inAuthGroup) {
+      router.replace('/(auth)/login');
+    } else if (isAuthenticated && inAuthGroup) {
+      router.replace('/(app)');
+    }
+  }, [isHydrated, isAuthenticated, segments]);
+
+  if (!isHydrated) {
+    return (
+      <SafeAreaProvider>
+        <LoadingOverlay message="認証情報を確認中..." />
+      </SafeAreaProvider>
+    );
+  }
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <Slot />
+    </SafeAreaProvider>
   );
 }
