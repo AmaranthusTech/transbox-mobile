@@ -56,6 +56,14 @@ TRANSBOX v2 のカスタマーエンドユーザー向け React Native / Expo �
   - `SkuSelectionModal` (React Native 標準 Modal) による SKU ラジオ選択, 適用単価・注文不可理由表示, `QuantitySelector` 数量指定。
   - Zustand `cartStore` 連動、別カタログ競合 (HTTP 409) 時の「カートを置き換える」確認アラート対応、ヘッダーバッジ同期および「カートを見る 🛒」/「会話を続ける」選択肢の提供。
 
+### Phase 1-F-2 (ロール別注文確定 & customer 直接注文の正式注文自動変換) - 完了
+- **ロールごとの注文確定経路統合**:
+  - `customer`: カスタマ代表ユーザーの直接注文。確定後カスタマ内承認不要で `convert_single_order_request_to_order` により即座に正式注文 (`Order`: `OD-YYYYMMDDHHMMSS-XXXXXX`) を作成し `converted_order` へ紐付け。
+  - `customer_end_user`: エンドユーザーからの注文申請。確定後所属カスタマーの承認待ち (`submitted` / `"カスタマ承認待ち"`) となる。所属カスタマーの承認 (`CustomerRoleEndUserRequestApproveView`) を経て正式注文へ変換。
+  - `customer_admin`: モバイルからの直接注文不可。HTTP 403 権限拒否および画面上の明示警告バナー表示。
+- **排他制御 & 二重処理防止**: `select_for_update()` による変換・承認・却下 API のアトミック更新保護と冪等性担保。
+- **画面反映**: モバイルの完了画面・注文履歴カード・注文詳細画面にて「正式注文作成済み」バッジと正式注文番号 (`converted_order_number`) を明示表示。
+
 
 
 

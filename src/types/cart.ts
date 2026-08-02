@@ -67,6 +67,9 @@ export interface SubmittedOrder {
   id: number;
   request_number: string;
   status: string;
+  status_label?: string;
+  converted_order_id?: number | null;
+  converted_order_number?: string | null;
   submitted_at: string;
   catalog_id: number;
   catalog_name: string;

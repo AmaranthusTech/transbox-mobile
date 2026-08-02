@@ -107,6 +107,15 @@ export default function OrderDetailScreen() {
             <Text style={styles.infoValue}>{order.requester_name}</Text>
           </View>
 
+          {order.converted_order_number ? (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>正式注文番号</Text>
+              <Text style={[styles.infoValue, { color: '#059669', fontWeight: '700' }]}>
+                {order.converted_order_number}
+              </Text>
+            </View>
+          ) : null}
+
           <View style={[styles.infoRow, styles.noBorderRow]}>
             <Text style={styles.infoLabel}>連絡先メール</Text>
             <Text style={styles.infoValue} numberOfLines={1} ellipsisMode="middle">

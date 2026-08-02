@@ -6,13 +6,17 @@ import {
   ScrollView,
 } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useAuthStore } from '@/stores/auth';
 import { Button } from '@/components/ui';
 import { PriceDisplay } from '@/components/catalog/PriceDisplay';
 
 export default function OrderCompleteScreen() {
   const router = useRouter();
+  const { user } = useAuthStore();
   const params = useLocalSearchParams<{
     request_number?: string;
+    converted_order_number?: string;
+    status_label?: string;
     submitted_at?: string;
     catalog_name?: string;
     customer_name?: string;
@@ -24,12 +28,16 @@ export default function OrderCompleteScreen() {
   }>();
 
   const requestNumber = params.request_number || 'EUO-XXXXXX-XXXX';
+  const convertedOrderNumber = params.converted_order_number || '';
+  const statusLabel = params.status_label || '';
   const catalogName = params.catalog_name || '電子カタログ';
   const customerName = params.customer_name || '所属カスタマー';
   const requesterName = params.requester_name || 'ご注文担当者';
   const lineCount = params.line_count || '0';
   const totalQuantity = params.total_quantity || '0';
   const totalAmount = params.total_amount || '0.00';
+
+  const isEndUser = user?.role === 'customer_end_user';
 
   const formattedDate = params.submitted_at
     ? new Date(params.submitted_at).toLocaleString('ja-JP', {
@@ -49,7 +57,7 @@ export default function OrderCompleteScreen() {
     <View style={styles.container}>
       <Stack.Screen
         options={{
-          title: '注文申請完了',
+          title: isEndUser ? 'カスタマー申請完了' : '注文完了',
           headerLeft: () => null,
           gestureEnabled: false,
         }}
@@ -58,15 +66,28 @@ export default function OrderCompleteScreen() {
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
         <View style={styles.successCard}>
           <Text style={styles.successIcon}>🎉</Text>
-          <Text style={styles.successTitle}>注文申請を受け付けました</Text>
+          <Text style={styles.successTitle}>
+            {isEndUser ? 'カスタマーへ申請を送信しました' : 'ご注文を完了・送信しました'}
+          </Text>
           <Text style={styles.successSubtitle}>
-            ご注文申請の受付が正常に完了いたしました。担当者からの確定連絡をお待ちください。
+            {isEndUser
+              ? '所属カスタマー担当者の承認後、テナントへ正式注文として送信されます。（現在の状態: カスタマー承認待ち）'
+              : convertedOrderNumber
+              ? `ご注文が正常に確定され、正式注文 (${convertedOrderNumber}) として作成されました。`
+              : 'ご注文が正常に確定され、テナントへ送信されました。'}
           </Text>
 
           <View style={styles.numberBadge}>
             <Text style={styles.numberLabel}>申請番号</Text>
             <Text style={styles.numberText}>{requestNumber}</Text>
           </View>
+
+          {convertedOrderNumber ? (
+            <View style={[styles.numberBadge, { marginTop: 8, backgroundColor: '#ECFDF5', borderColor: '#A7F3D0' }]}>
+              <Text style={[styles.numberLabel, { color: '#059669' }]}>正式注文番号</Text>
+              <Text style={[styles.numberText, { color: '#047857' }]}>{convertedOrderNumber}</Text>
+            </View>
+          ) : null}
         </View>
 
         <View style={styles.detailsCard}>

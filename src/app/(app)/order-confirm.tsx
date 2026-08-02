@@ -35,18 +35,30 @@ export default function OrderConfirmScreen() {
   const requesterName = cart?.requester_name || user?.display_name || 'ご注文担当者';
   const requesterEmail = cart?.requester_email || user?.email || '-';
 
+  const isCustomerAdmin = user?.role === 'customer_admin';
+  const isEndUser = user?.role === 'customer_end_user';
+
   const handleApplyOrderClick = () => {
+    if (isCustomerAdmin) {
+      Alert.alert('エラー', 'カスタマー管理者 (customer_admin) アカウントからはモバイルでの注文確定を行えません。');
+      return;
+    }
+
     if (!cart || !cart.order_available || isMutating || isSubmitting || submitInFlightRef.current) {
       return;
     }
 
+    const confirmMsg = isEndUser
+      ? 'この内容でカスタマー担当者へ注文申請を送信します。よろしいですか？'
+      : 'この内容でテナントへ注文を確定・送信します。よろしいですか？';
+
     Alert.alert(
-      '注文申請の確定',
-      'この内容で注文を申請します。申請後はカート内容を変更できません。よろしいですか？',
+      '注文確定の確認',
+      confirmMsg,
       [
         { text: 'キャンセル', style: 'cancel' },
         {
-          text: '注文を申請する',
+          text: '注文を確定する',
           style: 'default',
           onPress: async () => {
             if (submitInFlightRef.current) return;
@@ -63,6 +75,8 @@ export default function OrderConfirmScreen() {
                 pathname: '/(app)/order-complete',
                 params: {
                   request_number: submittedOrder.request_number,
+                  converted_order_number: submittedOrder.converted_order_number || '',
+                  status_label: submittedOrder.status_label || '',
                   submitted_at: submittedOrder.submitted_at,
                   catalog_name: submittedOrder.catalog_name,
                   customer_name: submittedOrder.customer_name,
@@ -112,7 +126,14 @@ export default function OrderConfirmScreen() {
         <>
           <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
             {/* 1. 注文受付状態・警告 */}
-            {!cart.order_available && cart.order_unavailable_reason ? (
+            {isCustomerAdmin ? (
+              <View style={styles.errorBox}>
+                <Text style={styles.errorBoxTitle}>⚠️ 注文機能のご利用不可</Text>
+                <Text style={styles.errorBoxText}>
+                  カスタマー管理者 (customer_admin) アカウントはモバイルでの注文申請・確定に対応しておりません。代表カスタマーまたはエンドユーザーアカウントをご利用ください。
+                </Text>
+              </View>
+            ) : !cart.order_available && cart.order_unavailable_reason ? (
               <View style={styles.errorBox}>
                 <Text style={styles.errorBoxTitle}>⚠️ 注文申請ができません</Text>
                 <Text style={styles.errorBoxText}>{cart.order_unavailable_reason}</Text>

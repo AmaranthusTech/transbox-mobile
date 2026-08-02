@@ -1,93 +1,51 @@
-# TRANSBOX Mobile Phase 1-A / 1-B / 1-C / 1-D-1 タスクリスト
+# Task: customer 直接注文の正式注文 (Order) 自動変換・接続
 
-## Phase 1-A (認証 & 共通基盤)
-- [x] 現状構成確認
-- [x] 依存関係整理 (axios, zustand, expo-secure-store, react-hook-form)
-- [x] 環境変数設定 (src/config/env.ts, .env.example, .gitignore)
-- [x] 型定義 (src/types/auth.ts, src/types/api.ts, src/types/index.ts)
-- [x] APIクライアント (src/api/client.ts)
-- [x] 認証API & public テナント解決 (src/api/auth.ts)
-- [x] SecureStore定数・キー管理 (src/api/secureStore.ts)
-- [x] Zustand認証ストア (src/stores/auth.ts)
-- [x] 認証フック (src/hooks/useAuth.ts)
-- [x] ルーティングと認証ガード (src/app/_layout.tsx, src/app/(auth)/_layout.tsx, src/app/(app)/_layout.tsx)
-- [x] ログイン画面 (src/app/(auth)/login.tsx)
-- [x] ホーム画面 (src/app/(app)/index.tsx)
-- [x] プロフィール画面 (src/app/(app)/profile/index.tsx)
+## 概要
+TRANSBOX Mobile および TRANSBOX 本体の注文フローにおいて、customer 自身がモバイルから提出した直接注文を、顧客内部承認不要で自動的に正式注文 (`Order` / `OrderLine`) へ変換し、テナント注文管理への表示およびモバイル注文履歴への正式注文番号反映を行う。
 
-## Phase 1-B (カタログ一覧・商品閲覧)
-- [x] バックエンド API の拡張・新設 (GET /api/end-user/catalogs/, detail, items, item detail)
-- [x] カタログ・商品・SKU・画像・価格の型定義 (`src/types/catalog.ts`)
-- [x] API クライアント (`src/api/catalogs.ts`)
-- [x] カスタムフック (`useCatalogs`, `useCatalogItems`, `useItemDetail`)
-- [x] 共通コンポーネント (`CatalogCard`, `ItemCard`, `SkuCard`, `ItemImage`, `PriceDisplay`)
-- [x] ホーム画面「カタログを見る」導線追加 (`src/app/(app)/index.tsx`)
-- [x] カタログ一覧画面 (`src/app/(app)/catalogs/index.tsx`)
-- [x] カタログ詳細 & 商品一覧画面 (`src/app/(app)/catalogs/[catalogId]/index.tsx`)
-- [x] 商品詳細 & SKU 一覧画面 (`src/app/(app)/catalogs/[catalogId]/items/[itemId].tsx`)
+---
 
-## Phase 1-C (会話型RAG検索)
-- [x] バックエンド専用API追加 (`POST /api/end-user/catalogs/{catalog_id}/ai-search/`)
-- [x] カタログスコープ pgvector ベクトル検索の DB レベル適用
-- [x] RAG シリアライザー (`EndUserCatalogRagQuerySerializer`, `ResponseSerializer`)
-- [x] RAG & チャット型定義 (`src/types/chat.ts`)
-- [x] RAG API クライアント (`src/api/aiAssistant.ts`)
-- [x] チャットフック (`src/hooks/useCatalogChat.ts`) - 二重送信防止・同期ロック・キャンセル
-- [x] コンポーネント (`ChatBubble`, `RagItemCard`, `ChatInput`)
-- [x] チャット画面 (`src/app/(app)/catalogs/[catalogId]/chat.tsx`)
-- [x] カタログ詳細「AIアシスタントに質問する」導線追加
-- [x] ドキュメント更新 (README.md, 仕様書)
-- [x] 差分確認 (git status, diff)
+## 業務ルールと役割
+1. **customer**
+   - カスタマ自身の注文主体（`end_user = None`）。
+   - モバイル注文確定時、自カスタマ承認は不要で自動的に正式注文 (`Order`: `OD-YYYYMMDDHHMMSS-XXXXXX`) を作成し、`converted_order` に紐付ける。
+   - モバイル履歴・詳細には「正式注文作成済み」および正式注文番号を表示。
+2. **customer_end_user**
+   - customer に紐づくエンドユーザ (`end_user = user.customer_end_user`)。
+   - 注文確定後、まず所属 customer の承認待ち (`submitted` / `"カスタマ承認待ち"`) になる。
+   - customer が承認 (`approved`) して初めて正式注文へ変換される。
+3. **customer_admin**
+   - テナント側でカスタマを管理する管理ロール。
+   - モバイル注文主体としては未対応。明示的に 403 権限エラーで拒否し、承認者としても扱わない。
 
-## Phase 1-D-1 (カート基盤 - 実装完了)
-- [x] バックエンド既存モデル・サービス調査 (`OrderDraft`, `EndUserOrderRequest`, `pricing_services`)
-- [x] モバイルアプリ既存構造調査 (`itemId.tsx`, `SkuCard.tsx`, Zustand `authStore`)
-- [x] カート保存方式比較・決定 (サーバー永続型 `EndUserOrderRequest` (status="draft") の採用)
-- [x] API仕様案およびエラーハンドリング設計
-- [x] 実装計画書作成 (`implementation_plan.md`)
-- [x] バックエンド カート API 追加 (`GET /api/end-user/cart/`, `POST /items/`, `POST /replace/`, `PATCH`, `DELETE`)
-- [x] 1 カート 1 カタログ制約 & 409 Conflict 処理
-- [x] カート取得・操作ごとのリアルタイム動的適用価格計算
-- [x] モバイル 型定義・API クライアント・Zustand カートストア (`src/stores/cart.ts`) 実装
-- [x] 商品詳細 SKU カード (`SkuCard`) への数量セレクター・カート追加・別カタログ置き換えダイアログ連動
-- [x] カート画面 (`src/app/(app)/cart.tsx`) & 明細カード (`CartLineCard`) 実装
-## Phase 1-D-2A (注文確認画面 - 実装完了)
-- [x] バックエンド カート API レスポンス最小拡張 (`customer_name`, `requester_name`, `requester_email`)
-- [x] カート画面 (`cart.tsx`) の「注文内容を確認する」ボタン有効化 & ルーティング設定
-- [x] 注文確認画面 (`src/app/(app)/order-confirm.tsx`) の新設
-- [x] 画面表示時の最新カート API (`GET /api/end-user/cart/`) 自動再取得
-- [x] 申請者情報・所属カスタマー名・対象カタログ名・明細プレビュー・単価・数量・小計・税込金額の表示
-- [x] 空カート保護表示 & 注文受付不可エラーボックス表示
-- [x] 固定フッター「注文を申請する」ボタンの配置
-- [x] ドキュメント更新 (仕様書, README.md, task.md)
+---
 
-## Phase 1-D-2B (注文申請確定 - 実装完了)
-- [x] バックエンド 注文申請確定 API 追加 (`POST /api/end-user/cart/submit/`)
-- [x] `select_for_update()` & `transaction.atomic()` による二重送信ロック & 冪等処理
-- [x] カタログ権限・受付期間・掲載状態・SKU有効性・最新価格の直前再検証
-- [x] `EUO-YYYYMMDD-XXXX` プレフィックスによる自動連続採番
-- [x] `status="submitted"`, `submitted_at` 更新 & 監査ログ (`record_audit_log`) 記録
-- [x] モバイル API (`submitCart()`) & Zustand Store (`submitCart()`) 実装
-- [x] 注文確認画面 (`order-confirm.tsx`) の「注文を申請する」ボタン有効化 & 連打二重送信ロック (`submitInFlightRef`)
-- [x] 注文完了画面 (`src/app/(app)/order-complete.tsx`) の新設 & 申請サマリー表示
-## Phase 1-E (注文履歴・注文詳細 - 実装完了)
-- [x] バックエンド 注文履歴一覧・詳細 API 強化 (`GET /api/end-user/requests/`, `GET /api/end-user/requests/{id}/`)
-- [x] 認可制御 (カスタマー所属スコープ化 & `status="draft"` カートの自動除外)
-- [x] 申請時スナップショット価格（`unit_price_snapshot`, `line_amount`, `total_amount`）および代表画像・明細画像の安全な返却
-- [x] 検索 (`search`), ステータスフィルタ (`status`), カタログフィルタ (`catalog_id`), ページネーション対応
-- [x] 採番日付プレフィックスのローカルタイムゾーン化 (`timezone.localtime(now)`)
-- [x] モバイル 型定義 (`src/types/orderHistory.ts`) & API クライアント (`src/api/orderHistory.ts`) 実装
-- [x] モバイル カスタムフック (`useOrderHistory`, `useOrderHistoryDetail`) 実装 (AbortController & 無限追加読み込み対応)
-- [x] 注文履歴一覧画面 (`src/app/(app)/orders/index.tsx`) & カードコンポーネント (`OrderHistoryCard.tsx`) 実装
-- [x] 注文詳細画面 (`src/app/(app)/orders/[requestId].tsx`) 実装 (スナップショット固定表示)
-## Phase 1-F-1 (AI会話から直接カート追加 - 実装完了)
-- [x] 現状コード調査 (商品詳細API, AI検索API, SkuCard, cartStore)
-- [x] AI検索レスポンス vs 既存商品詳細APIの比較検討 (安全な商品詳細API再利用の選択)
-- [x] 会話型検索画面 (`chat.tsx`) の RAG カード (`RagItemCard`) に「SKUを選んでカート追加」ボタンを追加
-- [x] React Native 標準 `Modal` による SKU 選択モーダル (`SkuSelectionModal.tsx`) の作成
-- [x] モーダル内での SKU 掲載状態、適用価格、注文可否理由、`QuantitySelector` 数量指定の実装
-- [x] 既存カート API (`addItem`, `replaceCartItem`) および Zustand `cartStore` との連動
-- [x] 別カタログ競合 (HTTP 409) 時のアラートと「カートを置き換える」対応
-- [x] カート追加成功時のシステムメッセージ挿入および「カートを見る」導線表示
-- [x] 二重送信防止・全数手動確認設計
-- [x] ドキュメント更新 (仕様書, README.md, task.md)
+## 実装手順タスク
+
+- [x] **1. 既存TRANSBOX本体の注文・正式注文変換調査**
+  - [x] 実データ（ID=26: `customer_end_user` 変換済み, ID=25: `customer` 直接注文）のステータス・フィールド構造調査
+  - [x] バックエンド既存 API (`CustomerRoleEndUserRequestConvertToOrderView`, `EndUserCartSubmitView` 等) の動作確認
+  - [x] `EndUserOrderRequestSerializer` の `get_can_convert_to_order` および `get_status_label` 挙動調査
+
+- [x] **2. バックエンド (`transbox_v2`) の正式注文自動変換・共通ヘルパー実装**
+  - [x] 共通関数 `convert_single_order_request_to_order` の抽出と `select_for_update` / 二重作成防止（冪等性）の実装
+  - [x] `EndUserCartSubmitView` において `customer` 直接注文（`end_user_id is None`）の確定時に `convert_single_order_request_to_order` を自動実行
+  - [x] `EndUserOrderRequestSerializer` の `get_status_label` で `converted_order_id` 存在時に `"正式注文作成済み"` を返却
+  - [x] `get_can_convert_to_order` で `end_user_id is None` の場合も `submitted` / `approved` で `True` になるよう修正
+
+- [x] **3. モバイルアプリ (`transbox-mobile`) の表示対応**
+  - [x] `src/types/cart.ts`: `SubmittedOrder` に `converted_order_number`, `converted_order_id`, `status_label` を追加
+  - [x] `order-confirm.tsx`: `router.replace` で `order-complete` に `converted_order_number` を引き渡し
+  - [x] `order-complete.tsx`: 正式注文番号 (`converted_order_number`) バッジと「正式注文作成済み」案内メッセージを表示
+  - [x] `OrderHistoryCard.tsx`: 正式注文番号と「正式注文作成済み」緑系バッジを表示
+  - [x] `orders/[requestId].tsx`: 申請概要カード内に「正式注文番号」を表示
+
+- [x] **4. ドキュメント更新**
+  - [x] バックエンド仕様書 `docs/md/notes/expo_conversational_order_app_spec.md` (Section 32 追加)
+  - [x] モバイル仕様書 `docs/expo_conversational_order_app_spec.md` (Section 32 追加)
+  - [x] `README.md`, `task.md`
+
+- [x] **5. 安全な確認コマンド実行**
+  - [x] `git status --short`
+  - [x] `git diff --stat`
+  - [x] `git diff --check`

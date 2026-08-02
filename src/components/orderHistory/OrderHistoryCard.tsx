@@ -20,7 +20,10 @@ export const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({ item, onPres
       })
     : '-';
 
-  const getStatusStyle = (status: string) => {
+  const getStatusStyle = (status: string, hasConvertedOrder: boolean) => {
+    if (hasConvertedOrder) {
+      return { bg: '#ECFDF5', text: '#059669', border: '#A7F3D0' };
+    }
     switch (status) {
       case 'submitted':
         return { bg: '#EFF6FF', text: '#2563EB', border: '#BFDBFE' };
@@ -37,7 +40,8 @@ export const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({ item, onPres
     }
   };
 
-  const statusStyle = getStatusStyle(item.status);
+  const hasConvertedOrder = !!item.converted_order_number;
+  const statusStyle = getStatusStyle(item.status, hasConvertedOrder);
 
   return (
     <TouchableOpacity
@@ -46,10 +50,17 @@ export const OrderHistoryCard: React.FC<OrderHistoryCardProps> = ({ item, onPres
       activeOpacity={0.7}
     >
       <View style={styles.headerRow}>
-        <Text style={styles.requestNumber}>{item.request_number}</Text>
+        <View style={{ flex: 1, marginRight: 8 }}>
+          <Text style={styles.requestNumber}>{item.request_number}</Text>
+          {item.converted_order_number ? (
+            <Text style={{ fontSize: 11, fontWeight: '700', color: '#059669', marginTop: 2 }}>
+              正式注文: {item.converted_order_number}
+            </Text>
+          ) : null}
+        </View>
         <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg, borderColor: statusStyle.border }]}>
           <Text style={[styles.statusText, { color: statusStyle.text }]}>
-            {item.status_label || item.status}
+            {item.status_label || (hasConvertedOrder ? '正式注文作成済み' : item.status)}
           </Text>
         </View>
       </View>
