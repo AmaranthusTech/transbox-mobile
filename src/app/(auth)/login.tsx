@@ -15,6 +15,7 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { Button, Input, ErrorMessage } from '@/components/ui';
 import { LoginPayload } from '@/types';
+import { normalizeTenantCode } from '@/api/tenantResolver';
 
 export default function LoginScreen() {
   const { login, isLoading, error, clearError } = useAuth();
@@ -82,11 +83,19 @@ export default function LoginScreen() {
                 name="tenant_code"
                 rules={{
                   required: 'テナントコードを入力してください',
+                  validate: (val) => {
+                    try {
+                      normalizeTenantCode(val);
+                      return true;
+                    } catch (err: any) {
+                      return err?.message || 'テナントコードは英小文字・数字・ハイフンで入力してください。';
+                    }
+                  },
                 }}
                 render={({ field: { onChange, onBlur, value } }) => (
                   <Input
                     label="テナントコード"
-                    placeholder="例: bg-beta"
+                    placeholder="例: bg, e2e072738"
                     autoCapitalize="none"
                     autoCorrect={false}
                     onBlur={onBlur}
@@ -152,7 +161,7 @@ export default function LoginScreen() {
               />
 
               <Button
-                title={isPending ? 'テナント解決 & ログイン中...' : 'ログイン'}
+                title={isPending ? 'ログイン中...' : 'ログイン'}
                 onPress={handleSubmit(onSubmit)}
                 loading={isPending}
                 disabled={!isFormFilled || isPending}

@@ -4,13 +4,15 @@
  */
 
 export interface EnvConfig {
+  transboxEnv: string;
+  tenantHostSuffix: string;
   resolverBaseUrl: string;
   apiBaseUrl: string;
   tenantSchema?: string;
   apiTimeoutMs: number;
 }
 
-function getEnvVariable(key: string, required = true): string {
+function getEnvVariable(key: string, required = false): string {
   const value = process.env[key];
   if (required && (!value || value.trim() === '')) {
     throw new Error(
@@ -22,7 +24,13 @@ function getEnvVariable(key: string, required = true): string {
 }
 
 export function loadEnvConfig(): EnvConfig {
-  const apiBaseUrl = getEnvVariable('EXPO_PUBLIC_API_BASE_URL', true);
+  const transboxEnv = getEnvVariable('EXPO_PUBLIC_TRANSBOX_ENV', false) || 'beta';
+  const tenantHostSuffix =
+    getEnvVariable('EXPO_PUBLIC_TENANT_HOST_SUFFIX', false) ||
+    (transboxEnv === 'beta' ? '-beta.transbox.tech' : '.transbox.tech');
+
+  const fallbackApiBaseUrl = `https://bg${tenantHostSuffix}`;
+  const apiBaseUrl = getEnvVariable('EXPO_PUBLIC_API_BASE_URL', false) || fallbackApiBaseUrl;
   const resolverBaseUrl = getEnvVariable('EXPO_PUBLIC_RESOLVER_BASE_URL', false) || apiBaseUrl;
   const tenantSchema = getEnvVariable('EXPO_PUBLIC_TENANT_SCHEMA', false);
   const timeoutStr = getEnvVariable('EXPO_PUBLIC_API_TIMEOUT_MS', false);
@@ -36,6 +44,8 @@ export function loadEnvConfig(): EnvConfig {
   }
 
   return {
+    transboxEnv,
+    tenantHostSuffix,
     resolverBaseUrl: resolverBaseUrl.replace(/\/+$/, ''),
     apiBaseUrl: apiBaseUrl.replace(/\/+$/, ''),
     tenantSchema: tenantSchema ? tenantSchema.trim() : undefined,

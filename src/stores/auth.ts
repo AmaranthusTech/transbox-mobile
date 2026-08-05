@@ -199,6 +199,10 @@ export const useAuthStore = create<AuthState>((set, get) => {
     },
 
     logout: async () => {
+      const currentRefresh = get().refreshToken || (await storage.getRefreshToken());
+      if (currentRefresh) {
+        await authApi.logout(currentRefresh);
+      }
       await storage.clearTokens();
       try {
         setTenantClientBaseUrl(env.apiBaseUrl);
